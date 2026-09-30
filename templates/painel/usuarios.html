@@ -1,0 +1,57 @@
+{% extends 'painel/base.html' %}
+{% block titulo %}Usuários | Organiza+{% endblock %}
+{% block conteudo %}
+<div class="cabeca">
+  <h1>Usuários</h1>
+  <p>Acessos ao Organiza+ (tabela <b>auth_user</b>)</p>
+</div>
+
+<div style="max-width:680px">
+  <div class="card-o">
+    <h2 style="margin-bottom:12px">Novo usuário</h2>
+    <form method="post">{% csrf_token %}
+      <div class="form-campo">
+        <label>Usuário</label>
+        <input name="username" value="{{ form.username.value|default:'' }}" required maxlength="150" autocomplete="off">
+      </div>
+      <div class="form-campo">
+        <label>Senha</label>
+        <input type="password" name="password1" required autocomplete="new-password">
+      </div>
+      <div class="form-campo">
+        <label>Repetir a senha</label>
+        <input type="password" name="password2" required autocomplete="new-password">
+      </div>
+      <div class="modal-acoes"><button class="btn-o" type="submit">Criar usuário</button></div>
+    </form>
+    <p style="color:var(--muted);font-size:12.5px;margin:8px 0 0">
+      O usuário novo entra como usuário comum (sem acesso a esta tela). Para dar permissões de administração, use o
+      <a href="/admin/auth/user/" style="color:var(--primary)">admin do Django</a>.
+    </p>
+  </div>
+
+  <div class="card-o">
+    <h2 style="margin-bottom:12px">Cadastrados ({{ usuarios|length }})</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">
+      <thead>
+        <tr style="color:var(--muted);font-size:12.5px;text-align:left">
+          <th style="padding:6px 0">Usuário</th>
+          <th>Perfil</th>
+          <th>Último acesso</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:7px 0">{{ u.username }}</td>
+          <td>{% if u.is_superuser %}superusuário{% elif u.is_staff %}equipe{% else %}usuário{% endif %}</td>
+          <td>{% if u.last_login %}{{ u.last_login|date:'d/m/Y H:i' }}{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" style="padding:8px 0;color:var(--muted)">Nenhum usuário.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

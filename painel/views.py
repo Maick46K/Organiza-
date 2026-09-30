@@ -2,7 +2,9 @@ import calendar as pycalendar
 import datetime
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -145,11 +147,43 @@ def evento_salvar(request):
 def configuracoes(request):
     cfg = ConfiguracaoEscola.atual()
     if request.method == 'POST':
-        cfg.escola = (request.POST.get('escola') or cfg.escola)[:120]
-        cfg.turma = (request.POST.get('turma') or cfg.turma)[:80]
-        cfg.periodo = (request.POST.get('periodo') or cfg.periodo)[:80]
-        cfg.tema_claro = request.POST.get('tema_claro') == 'on'
+        # Cada form manda seu proprio marcador ('form'): antes, salvar as informacoes
+        # da escola (form sem o campo do tema) ZERAVA o tema escolhido.
+        qual = request.POST.get('form')
+        if qual == 'escola':
+            cfg.escola = (request.POST.get('escola') or cfg.escola)[:120]
+            cfg.turma = (request.POST.get('turma') or cfg.turma)[:80]
+            cfg.periodo = (request.POST.get('periodo') or cfg.periodo)[:80]
+        elif qual == 'aparencia':
+            # a tela fala "Tema escuro" (marcado = escuro); o campo do banco e' tema_claro
+            cfg.tema_claro = request.POST.get('tema_escuro') != 'on'
         cfg.save()
         messages.success(request, 'Configurações salvas.')
         return redirect('configuracoes')
     return render(request, 'painel/configuracoes.html', {'cfg': cfg, 'menu': 'configuracoes'})
+
+
+def _so_superusuario(u):
+    return u.is_authenticated and u.is_superuser
+
+
+@user_passes_test(_so_superusuario)
+def usuarios(request):
+    """Lista e cria usuarios (tabela auth_user do Django). Só superusuario."""
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            novo = form.save()
+            messages.success(request, 'Usuario "%s" criado.' % novo.username)
+            return redirect('usuarios')
+        partes = []
+        for campo, erros in form.errors.items():
+            partes.append('%s: %s' % (campo, ' '.join(erros)))
+        messages.error(request, 'Nao foi possivel criar: ' + ' | '.join(partes))
+    else:
+        form = UserCreationForm()
+    return render(request, 'painel/usuarios.html', {
+        'form': form,
+        'usuarios': User.objects.order_by('username'),
+        'menu': 'usuarios',
+    })

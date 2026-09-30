@@ -10,6 +10,7 @@
   <div class="card-o">
     <h2 style="margin-bottom:12px">Informações da escola</h2>
     <form method="post">{% csrf_token %}
+      <input type="hidden" name="form" value="escola">
       <div class="form-campo"><label>Escola</label><input name="escola" value="{{ cfg.escola }}"></div>
       <div class="form-campo"><label>Turma</label><input name="turma" value="{{ cfg.turma }}"></div>
       <div class="form-campo"><label>Período</label><input name="periodo" value="{{ cfg.periodo }}"></div>
@@ -20,13 +21,12 @@
   <div class="card-o">
     <h2 style="margin-bottom:12px">Aparência</h2>
     <form method="post">{% csrf_token %}
-      <input type="hidden" name="escola" value="{{ cfg.escola }}">
-      <input type="hidden" name="turma" value="{{ cfg.turma }}">
-      <input type="hidden" name="periodo" value="{{ cfg.periodo }}">
+      <input type="hidden" name="form" value="aparencia">
       <div class="form-check form-switch form-campo">
-        <input class="form-check-input" type="checkbox" name="tema_claro" id="tema" {% if cfg.tema_claro %}checked{% endif %}>
-        <label class="form-check-label" for="tema">Tema Claro</label>
+        <input class="form-check-input" type="checkbox" name="tema_escuro" id="tema" {% if not cfg.tema_claro %}checked{% endif %}>
+        <label class="form-check-label" for="tema">Tema escuro</label>
       </div>
+      <p style="color:var(--muted);font-size:12.5px;margin:0 0 8px">Ligado = tema escuro (padrão) · Desligado = tema claro</p>
       <div class="modal-acoes"><button class="btn-o">Aplicar</button></div>
     </form>
   </div>
@@ -35,7 +35,9 @@
     <h2 style="margin-bottom:12px">Conta</h2>
     <div class="d-flex gap-2">
       <span class="btn-fantasma">{{ request.user.username }}</span>
-      <a class="btn-fantasma" href="{% url 'logout' %}">Sair da conta</a>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">{% csrf_token %}
+        <button class="btn-fantasma" type="submit">Sair da conta</button>
+      </form>
     </div>
   </div>
 
