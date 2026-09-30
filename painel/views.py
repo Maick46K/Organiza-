@@ -155,8 +155,8 @@ def configuracoes(request):
             cfg.turma = (request.POST.get('turma') or cfg.turma)[:80]
             cfg.periodo = (request.POST.get('periodo') or cfg.periodo)[:80]
         elif qual == 'aparencia':
-            # a tela fala "Tema escuro" (marcado = escuro); o campo do banco e' tema_claro
-            cfg.tema_claro = request.POST.get('tema_escuro') != 'on'
+            # a tela mostra "Tema claro": marcado = claro; desmarcado = escuro (padrao)
+            cfg.tema_claro = request.POST.get('tema_claro') == 'on'
         cfg.save()
         messages.success(request, 'Configurações salvas.')
         return redirect('configuracoes')

@@ -23,10 +23,10 @@
     <form method="post">{% csrf_token %}
       <input type="hidden" name="form" value="aparencia">
       <div class="form-check form-switch form-campo">
-        <input class="form-check-input" type="checkbox" name="tema_escuro" id="tema" {% if not cfg.tema_claro %}checked{% endif %}>
-        <label class="form-check-label" for="tema">Tema escuro</label>
+        <input class="form-check-input" type="checkbox" name="tema_claro" id="tema" {% if cfg.tema_claro %}checked{% endif %}>
+        <label class="form-check-label" for="tema">Tema claro</label>
       </div>
-      <p style="color:var(--muted);font-size:12.5px;margin:0 0 8px">Ligado = tema escuro (padrão) · Desligado = tema claro</p>
+      <p style="color:var(--muted);font-size:12.5px;margin:0 0 8px">Ligado = tema claro · Desligado = tema escuro (padrão)</p>
       <div class="modal-acoes"><button class="btn-o">Aplicar</button></div>
     </form>
   </div>
