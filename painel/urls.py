@@ -13,4 +13,6 @@ urlpatterns = [
     path('calendario/evento/', views.evento_salvar, name='evento_salvar'),
     path('configuracoes/', views.configuracoes, name='configuracoes'),
     path('usuarios/', views.usuarios, name='usuarios'),
+    path('usuarios/<int:pk>/editar/', views.usuario_editar, name='usuario_editar'),
+    path('usuarios/<int:pk>/excluir/', views.usuario_excluir, name='usuario_excluir'),
 ]

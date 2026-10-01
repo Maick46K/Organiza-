@@ -6,7 +6,7 @@
   <p>Acessos ao Organiza+ (tabela <b>auth_user</b>)</p>
 </div>
 
-<div style="max-width:680px">
+<div style="max-width:760px">
   <div class="card-o">
     <h2 style="margin-bottom:12px">Novo usuário</h2>
     <form method="post">{% csrf_token %}
@@ -25,8 +25,8 @@
       <div class="modal-acoes"><button class="btn-o" type="submit">Criar usuário</button></div>
     </form>
     <p style="color:var(--muted);font-size:12.5px;margin:8px 0 0">
-      O usuário novo entra como usuário comum (sem acesso a esta tela). Para dar permissões de administração, use o
-      <a href="/admin/auth/user/" style="color:var(--primary)">admin do Django</a>.
+      O usuário novo entra como <b>usuário comum</b> (visualiza o painel; não altera o Cronograma Hoje nem esta tela).
+      Para dar permissões, use <b>Editar</b> na lista abaixo.
     </p>
   </div>
 
@@ -38,20 +38,82 @@
           <th style="padding:6px 0">Usuário</th>
           <th>Perfil</th>
           <th>Último acesso</th>
+          <th style="text-align:right">Ações</th>
         </tr>
       </thead>
       <tbody>
         {% for u in usuarios %}
         <tr style="border-top:1px solid var(--border)">
-          <td style="padding:7px 0">{{ u.username }}</td>
-          <td>{% if u.is_superuser %}superusuário{% elif u.is_staff %}equipe{% else %}usuário{% endif %}</td>
+          <td style="padding:7px 0">
+            {{ u.username }}
+            {% if not u.is_active %}<span class="somente-leitura" style="color:var(--alta);border-color:var(--alta)">inativo</span>{% endif %}
+            {% if u.pk == request.user.pk %}<span class="somente-leitura">você</span>{% endif %}
+          </td>
+          <td>{% if u.is_superuser %}administrador{% elif u.is_staff %}equipe{% else %}usuário{% endif %}</td>
           <td>{% if u.last_login %}{{ u.last_login|date:'d/m/Y H:i' }}{% else %}—{% endif %}</td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="btn-icone" title="Editar"
+              onclick='editarUsuario({{ u.pk }}, "{{ u.username|escapejs }}", "{{ u.first_name|escapejs }}", "{{ u.last_name|escapejs }}", "{{ u.email|escapejs }}", {{ u.is_superuser|yesno:"true,false" }}, {{ u.is_staff|yesno:"true,false" }}, {{ u.is_active|yesno:"true,false" }})'>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </button>
+            {% if u.pk != request.user.pk %}
+            <form method="post" action="{% url 'usuario_excluir' u.pk %}" style="display:inline"
+                  onsubmit="return confirm('Excluir o usuário {{ u.username|escapejs }}? Não tem volta.')">{% csrf_token %}
+              <button class="btn-icone" title="Excluir">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+              </button>
+            </form>
+            {% endif %}
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="3" style="padding:8px 0;color:var(--muted)">Nenhum usuário.</td></tr>
+        <tr><td colspan="4" style="padding:8px 0;color:var(--muted)">Nenhum usuário.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+<!-- modal editar usuário -->
+<div class="modal-fundo" id="m_usuario">
+  <div class="modal-cx">
+    <h3>Editar <span id="e_username"></span></h3>
+    <form method="post" id="e_form">{% csrf_token %}
+      <div class="form-campo"><label>Nome</label><input name="first_name" id="e_first" maxlength="150"></div>
+      <div class="form-campo"><label>Sobrenome</label><input name="last_name" id="e_last" maxlength="150"></div>
+      <div class="form-campo"><label>E-mail</label><input name="email" id="e_email" maxlength="254"></div>
+      <div class="form-campo"><label>Nova senha (deixe vazio para manter)</label><input type="password" name="senha" autocomplete="new-password"></div>
+      <div class="form-check form-switch form-campo">
+        <input class="form-check-input" type="checkbox" name="is_superuser" id="e_super">
+        <label class="form-check-label" for="e_super">Administrador (altera o Cronograma Hoje e usuários)</label>
+      </div>
+      <div class="form-check form-switch form-campo">
+        <input class="form-check-input" type="checkbox" name="is_staff" id="e_staff">
+        <label class="form-check-label" for="e_staff">Equipe (acesso ao admin do Django)</label>
+      </div>
+      <div class="form-check form-switch form-campo">
+        <input class="form-check-input" type="checkbox" name="is_active" id="e_ativo">
+        <label class="form-check-label" for="e_ativo">Ativo (pode entrar)</label>
+      </div>
+      <div class="modal-acoes">
+        <button type="button" class="btn-fantasma" onclick="fecharModal('m_usuario')">Cancelar</button>
+        <button class="btn-o" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function editarUsuario(id, username, first, last, email, superu, staff, ativo) {
+  document.getElementById('e_username').innerText = username;
+  document.getElementById('e_first').value = first;
+  document.getElementById('e_last').value = last;
+  document.getElementById('e_email').value = email;
+  document.getElementById('e_super').checked = (superu === true);
+  document.getElementById('e_staff').checked = (staff === true);
+  document.getElementById('e_ativo').checked = (ativo === true);
+  document.getElementById('e_form').action = '/usuarios/' + id + '/editar/';
+  abrirModal('m_usuario');
+}
+</script>
 {% endblock %}

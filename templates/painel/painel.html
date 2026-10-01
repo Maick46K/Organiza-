@@ -69,7 +69,11 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           Cronograma Hoje
         </h2>
+        {% if request.user.is_superuser %}
         <button class="btn-o" onclick="novaAula()">+</button>
+        {% else %}
+        <span class="somente-leitura">somente leitura</span>
+        {% endif %}
       </div>
       {% for a in aulas %}
       <div class="aula">
@@ -78,6 +82,7 @@
           <div class="titulo" style="font-weight:600">{{ a.disciplina }}</div>
           <div class="hora">{{ a.horario|time:"H:i" }} · {{ a.local|default:'—' }}</div>
         </div>
+        {% if request.user.is_superuser %}
         <button class="btn-icone" title="Editar" onclick='editarAula({{ a.pk }}, "{{ a.disciplina|escapejs }}", "{{ a.local|escapejs }}", "{{ a.horario|time:"H:i" }}", {{ a.dia_semana }})'>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
         </button>
@@ -86,9 +91,10 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
           </button>
         </form>
+        {% endif %}
       </div>
       {% empty %}
-      <div class="texto-centro" style="padding:22px 0;color:var(--muted)">Sem aulas para hoje — clique em <b>+</b></div>
+      <div class="texto-centro" style="padding:22px 0;color:var(--muted)">Sem aulas para hoje{% if request.user.is_superuser %} — clique em <b>+</b>{% endif %}.</div>
       {% endfor %}
     </div>
   </div>

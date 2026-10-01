@@ -68,6 +68,22 @@ h1, h2, h3, .titulo { font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
 .menu a.ativo { background: var(--primary); color: var(--primary-fg); }
 .sidebar .rodape { font-size: 12.5px; color: rgba(255,255,255,.82); }
 
+/* ---------- usuário logado (topo à direita) ---------- */
+.topo { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.usuario-logado { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
+  background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px 5px 6px; }
+.usuario-logado .avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--primary);
+  color: var(--primary-fg); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+.usuario-logado .papel { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+/* ---------- símbolo da escola ---------- */
+.brasao-cx { display: flex; justify-content: center; margin-bottom: 12px; }
+.brasao { width: 86px; height: auto; display: block; background: #fff; border-radius: 10px; padding: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.login-brasao { width: 118px; height: auto; display: block; margin: 0 auto 12px; }
+.somente-leitura { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 999px; padding: 3px 8px; }
+
 /* ---------- conteúdo ---------- */
 .conteudo { flex: 1; padding: 28px 32px; }
 .cabeca { margin-bottom: 22px; }

@@ -77,6 +77,9 @@ def tarefa_concluir(request, pk):
 @login_required
 @require_POST
 def aula_salvar(request):
+    if not request.user.is_superuser:
+        messages.error(request, 'Somente o administrador pode alterar o Cronograma Hoje.')
+        return redirect('painel')
     a_id = request.POST.get('id')
     disciplina = (request.POST.get('disciplina') or '').strip()
     local = (request.POST.get('local') or '').strip()
@@ -99,6 +102,9 @@ def aula_salvar(request):
 @login_required
 @require_POST
 def aula_excluir(request, pk):
+    if not request.user.is_superuser:
+        messages.error(request, 'Somente o administrador pode alterar o Cronograma Hoje.')
+        return redirect('painel')
     get_object_or_404(Aula, pk=pk).delete()
     messages.success(request, 'Aula removida.')
     return redirect('painel')
@@ -187,3 +193,55 @@ def usuarios(request):
         'usuarios': User.objects.order_by('username'),
         'menu': 'usuarios',
     })
+
+
+@user_passes_test(_so_superusuario)
+@require_POST
+def usuario_editar(request, pk):
+    """Edita nome, permissoes e (opcionalmente) a senha de um usuario."""
+    alvo = get_object_or_404(User, pk=pk)
+    novo_super = request.POST.get('is_superuser') == 'on'
+    novo_staff = request.POST.get('is_staff') == 'on'
+    novo_ativo = request.POST.get('is_active') == 'on'
+    eu = (alvo.pk == request.user.pk)
+
+    # protecoes: nao se trancar fora nem deixar o sistema sem administrador
+    if eu and not novo_super:
+        messages.error(request, 'Você não pode remover o seu próprio acesso de administrador.')
+        return redirect('usuarios')
+    if eu and not novo_ativo:
+        messages.error(request, 'Você não pode desativar a sua própria conta.')
+        return redirect('usuarios')
+    if alvo.is_superuser and not novo_super and User.objects.filter(is_superuser=True).count() <= 1:
+        messages.error(request, 'Precisa haver pelo menos um administrador ativo.')
+        return redirect('usuarios')
+
+    alvo.first_name = (request.POST.get('first_name') or '')[:150]
+    alvo.last_name = (request.POST.get('last_name') or '')[:150]
+    alvo.email = (request.POST.get('email') or '')[:254]
+    alvo.is_superuser = novo_super
+    alvo.is_staff = novo_staff or novo_super
+    alvo.is_active = novo_ativo
+    nova_senha = (request.POST.get('senha') or '').strip()
+    if nova_senha:
+        alvo.set_password(nova_senha)
+    alvo.save()
+    messages.success(request, 'Usuário "%s" atualizado%s.' % (alvo.username, ' (senha trocada)' if nova_senha else ''))
+    return redirect('usuarios')
+
+
+@user_passes_test(_so_superusuario)
+@require_POST
+def usuario_excluir(request, pk):
+    """Exclui um usuario (com protecoes)."""
+    alvo = get_object_or_404(User, pk=pk)
+    if alvo.pk == request.user.pk:
+        messages.error(request, 'Você não pode excluir a sua própria conta.')
+        return redirect('usuarios')
+    if alvo.is_superuser and User.objects.filter(is_superuser=True).count() <= 1:
+        messages.error(request, 'Precisa haver pelo menos um administrador ativo.')
+        return redirect('usuarios')
+    nome = alvo.username
+    alvo.delete()
+    messages.success(request, 'Usuário "%s" excluído.' % nome)
+    return redirect('usuarios')
