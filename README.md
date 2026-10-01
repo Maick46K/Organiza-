@@ -187,3 +187,5 @@ organiza/
 - [ ] Faltas/frequência por matéria
 - [ ] PWA + lembrete de prazos
 - [ ] Exportar/importar dados (JSON/CSV)
+
+Maick46k
